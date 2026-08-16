@@ -28,6 +28,28 @@ export const NetflixCard = ({ content, type, isNonTranslated = false }: NetflixC
     return `/${type === "movie" ? "movies" : "series"}/${content.id}`;
   };
 
+  // Extract VJ Name comprehensively across all possible object shapes
+  const getVjName = (): string | null => {
+    if (!content) return null;
+    if ('vjs' in content && content.vjs) {
+      if (typeof content.vjs === 'string' && content.vjs) return content.vjs;
+      if (typeof (content.vjs as any).name === 'string' && (content.vjs as any).name) return (content.vjs as any).name;
+    }
+    if ('vj_name' in content && typeof (content as any).vj_name === 'string' && (content as any).vj_name) {
+      return (content as any).vj_name;
+    }
+    if ('vj' in content && (content as any).vj) {
+      if (typeof (content as any).vj === 'string' && (content as any).vj) return (content as any).vj;
+      if (typeof (content as any).vj.name === 'string' && (content as any).vj.name) return (content as any).vj.name;
+    }
+    if ('translator' in content && typeof (content as any).translator === 'string' && (content as any).translator) {
+      return (content as any).translator;
+    }
+    return null;
+  };
+
+  const vjName = getVjName();
+
   // Get the best available image URL with type safety
   const getImageUrl = (): string => {
     return content.thumbnail_url ||
@@ -54,18 +76,19 @@ export const NetflixCard = ({ content, type, isNonTranslated = false }: NetflixC
                 target.src = `https://via.placeholder.com/240x360/1f2937/f97316?text=${encodeURIComponent(content.title || '')}`;
               }}
             />
-            )
 
-            {/* Content type badge - smaller */}
+            {/* Content type badge - top left */}
             <div className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${type === "movie" ? "bg-[#FF7F50]" : "bg-[#1ABC9C]"
               }`}>
               {type === "movie" ? "Movie" : "Series"}
             </div>
 
-            {/* VJ Tag */}
-            {('vjs' in content && (content.vjs as any)?.name) && (
-              <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-sm border border-orange-500/30 px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(249,115,22,0.2)] flex items-center z-10">
-                <span className="text-orange-500 font-bold text-[10px] truncate max-w-[80px] md:max-w-[100px]">{(content.vjs as any).name}</span>
+            {/* VJ Tag - High Visibility Vibrant Orange Badge at Bottom Right */}
+            {vjName && (
+              <div className="absolute bottom-1 right-1 bg-black/85 backdrop-blur-md border border-orange-500/60 px-1.5 py-0.5 rounded shadow-[0_0_12px_rgba(249,115,22,0.35)] flex items-center z-10">
+                <span className="text-orange-400 font-bold text-[10px] sm:text-[11px] truncate max-w-[85px] md:max-w-[110px] tracking-wide">
+                  {vjName}
+                </span>
               </div>
             )}
 
@@ -88,8 +111,15 @@ export const NetflixCard = ({ content, type, isNonTranslated = false }: NetflixC
           {content.release_date && (
             <span>{new Date(content.release_date).getFullYear()}</span>
           )}
+          {vjName && (
+            <>
+              <span>•</span>
+              <span className="text-orange-400 font-semibold truncate max-w-[70px]">{vjName}</span>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
+

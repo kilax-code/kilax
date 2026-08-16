@@ -3,17 +3,23 @@
 import { Search } from 'lucide-react';
 import { NetflixCard } from '@/components/NetflixCard';
 import { Button } from '@/components/ui/button';
+import { HeartbeatInlineLoader } from '@/components/HeartbeatLoader';
 
 interface SearchResult {
   id: string;
   title: string;
   poster_url?: string;
+  thumbnail_url?: string;
+  cover_image_url?: string;
   release_date?: string;
   rating?: number;
   type: 'movie' | 'series' | 'anime' | 'english-movie' | 'english-series';
   genre?: string;
   description?: string;
   relevanceScore?: number;
+  vjs?: { name: string } | null;
+  vj?: string;
+  vj_name?: string;
 }
 
 interface SearchResultsProps {
@@ -38,8 +44,7 @@ export function SearchResults({
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-        <p className="text-gray-400 text-lg">Searching...</p>
+        <HeartbeatInlineLoader text="Scanning Cinema Database..." />
       </div>
     );
   }
@@ -85,13 +90,7 @@ export function SearchResults({
           {items.map((item) => (
             <NetflixCard
               key={`${item.type}-${item.id}`}
-              content={{
-                id: item.id,
-                title: item.title,
-                poster_url: item.poster_url,
-                release_date: item.release_date,
-                description: item.description,
-              }}
+              content={item}
               type={item.type === 'movie' || item.type === 'english-movie' ? 'movie' : 'series'}
               isNonTranslated={item.type === 'anime' || item.type === 'english-movie' || item.type === 'english-series'}
             />
@@ -133,13 +132,7 @@ export function SearchResults({
           {results.map((item) => (
             <NetflixCard
               key={`${item.type}-${item.id}`}
-              content={{
-                id: item.id,
-                title: item.title,
-                poster_url: item.poster_url,
-                release_date: item.release_date,
-                description: item.description,
-              }}
+              content={item}
               type={item.type === 'movie' || item.type === 'english-movie' ? 'movie' : 'series'}
               isNonTranslated={item.type === 'anime' || item.type === 'english-movie' || item.type === 'english-series'}
             />

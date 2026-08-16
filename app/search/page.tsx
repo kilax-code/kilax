@@ -269,14 +269,7 @@ export default function SearchPage() {
                   {filteredMovies.map((movie) => (
                     <NetflixCard
                       key={movie.id}
-                      content={{
-                        id: movie.id,
-                        title: movie.title,
-                        thumbnail_url: movie.thumbnail_url,
-                        cover_image_url: movie.cover_image_url,
-                        description: movie.description,
-                        release_date: movie.release_date,
-                      }}
+                      content={movie}
                       type="movie"
                     />
                   ))}
@@ -294,14 +287,7 @@ export default function SearchPage() {
                   {filteredSeries.map((seriesItem) => (
                     <NetflixCard
                       key={seriesItem.id}
-                      content={{
-                        id: seriesItem.id,
-                        title: seriesItem.title,
-                        thumbnail_url: seriesItem.thumbnail_url,
-                        cover_image_url: seriesItem.cover_image_url,
-                        description: seriesItem.description,
-                        release_date: seriesItem.release_date,
-                      }}
+                      content={seriesItem}
                       type="series"
                     />
                   ))}

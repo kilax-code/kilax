@@ -53,3 +53,97 @@ body {
     display: none !important;
   }
 }
+
+/* =========================================================================
+   Life-Support / Heartbeat ECG Animations
+   ========================================================================= */
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  14% {
+    transform: scale(1.025);
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.25);
+  }
+  28% {
+    transform: scale(0.99);
+    opacity: 0.9;
+  }
+  42% {
+    transform: scale(1.035);
+    opacity: 1;
+    box-shadow: 0 0 22px rgba(249, 115, 22, 0.35);
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+}
+
+@keyframes ecg-draw {
+  0% {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ecg-scanline {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes ecg-bar {
+  0%, 100% {
+    width: 25%;
+    transform: translateX(0%);
+  }
+  50% {
+    width: 75%;
+    transform: translateX(35%);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.animate-ecg-draw {
+  animation: ecg-draw 2s linear infinite;
+}
+
+.animate-ecg-scanline {
+  animation: ecg-scanline 1.6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.animate-ecg-bar {
+  animation: ecg-bar 1.4s ease-in-out infinite;
+}
+

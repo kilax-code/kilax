@@ -68,7 +68,7 @@ export default function DownloadPage() {
         </p>
         <div className="flex flex-col gap-3 w-full max-w-md">
           <a
-            href="#"
+            href="https://play.google.com/store/apps/details?id=com.app.kilax"
             className="flex items-center justify-center gap-3 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-semibold px-6 py-4 rounded-xl shadow-lg hover:scale-105 hover:from-orange-600 hover:to-orange-500 transition-all text-base w-full"
             target="_blank"
             rel="noopener noreferrer"

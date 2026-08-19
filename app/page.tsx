@@ -8,7 +8,7 @@ import { NetflixCard } from "@/components/NetflixCard";
 import { HeartbeatRowSkeleton, HeartbeatPageLoader } from "@/components/HeartbeatLoader";
 
 import { useEffect, useState, useRef } from "react";
-import { getVJContentClient, getMoviesClient, getSeriesClient, getGenreRowsClient } from "@/lib/api-client";
+import { getVJContentClient, getMoviesClient, getSeriesClient, getGenreRowsClient, getTrendingContentClient, getTrendingContentClientMonthly } from "@/lib/api-client";
 
 import { Movie, Series } from "@/lib/supabase";
 
@@ -16,6 +16,34 @@ import { useAuthCheck } from "@/components/AuthRequiredModal";
 import AuthRequiredModal from "@/components/AuthRequiredModal";
 
 export const dynamic = 'force-dynamic'
+
+// FAQ data used in both the rendered FAQ section and JSON-LD schema
+const FAQ_ITEMS = [
+  {
+    q: "What are Luganda Translated Movies (Katogo)?" ,
+    a: "Luganda translated movies — also called 'katogo' movies — are international films that have been narrated and translated into Luganda, Uganda's most widely spoken local language, by a professional Video Jockey (VJ). VJs like VJ Junior, Omutaka Ice P, and VJ Jingo provide live or pre-recorded Luganda narration over the original audio, making Hollywood blockbusters and Asian action films accessible and entertaining for Ugandan audiences."
+  },
+  {
+    q: "Where can I watch movies translated by VJ Junior, Omutaka Ice P, and VJ Jingo?",
+    a: "Kilax Movies is the official home of Ugandan VJ-translated content. You can browse and stream the full catalogs of VJ Junior, Omutaka Ice P (Ice P), VJ Jingo (VJ Jjingo), VJ Emmy, VJ Moon, VJ KK, and many other top Ugandan VJs directly on kilaxmovies.com or by downloading the free Kilax Movies app for Android."
+  },
+  {
+    q: "How do I download Luganda translated movies on Kilax Movies?",
+    a: "Premium subscribers on Kilax Movies can download movies and series for offline viewing. Simply upgrade to a Kilax Premium subscription, find the movie or series you want, and tap the Download button. Downloads are available for all VJ-translated content including movies by VJ Junior, Omutaka Ice P, VJ Jingo, and more."
+  },
+  {
+    q: "Is Kilax Movies the same as Kilax or KilaxMovies?",
+    a: "Yes — Kilax Movies, Kilax, and KilaxMovies all refer to the same platform at kilaxmovies.com. We are Uganda's #1 dedicated streaming service for Luganda translated movies and series, featuring content from VJ Junior, Omutaka Ice P, VJ Jingo (VJ Jjingo), VJ Emmy, and other top Ugandan VJs."
+  },
+  {
+    q: "Who are the best Ugandan VJs for translated movies?",
+    a: "Uganda's most popular VJs include: VJ Junior (known for action and thriller translations), Omutaka Ice P/Ice P (legendary for Kung Fu and Sci-Fi movies), VJ Jingo/VJ Jjingo (famous for drama and series), VJ Emmy (comedy specialist), VJ Moon (horror and suspense), and VJ KK (action and Bollywood). All their translated content is available on Kilax Movies."
+  },
+  {
+    q: "Can I watch Kilax Movies for free?",
+    a: "Yes! Kilax Movies offers free access to a selection of Luganda translated movies and series. For the full library including downloads, HD streaming, and exclusive VJ content, upgrade to Kilax Premium — Uganda's most affordable movie subscription service."
+  },
+];
 
 type VJContent = (Movie | Series) & {
   type: 'movie' | 'series';
@@ -29,6 +57,8 @@ let cachedHomeData: {
   movies?: any[];
   series?: any[];
   genres?: { name: string; movies: any[] }[];
+  trending?: any[];
+  trendingMonthly?: any[];
 } | null = null;
 
 export default function HomePage() {
@@ -37,11 +67,15 @@ export default function HomePage() {
   const [latestMovies, setLatestMovies] = useState<any[]>(() => cachedHomeData?.movies || []);
   const [latestSeries, setLatestSeries] = useState<any[]>(() => cachedHomeData?.series || []);
   const [genreRows, setGenreRows] = useState<{ name: string; movies: any[] }[]>(() => cachedHomeData?.genres || []);
+  const [trendingContent, setTrendingContent] = useState<any[]>(() => cachedHomeData?.trending || []);
+  const [trendingContentMonthly, setTrendingContentMonthly] = useState<any[]>(() => cachedHomeData?.trendingMonthly || []);
   
   const [loadingHero, setLoadingHero] = useState(() => !cachedHomeData?.featured?.length);
   const [loadingMovies, setLoadingMovies] = useState(() => !cachedHomeData?.movies?.length);
   const [loadingSeries, setLoadingSeries] = useState(() => !cachedHomeData?.series?.length);
   const [loadingGenres, setLoadingGenres] = useState(() => !cachedHomeData?.genres?.length);
+  const [loadingTrending, setLoadingTrending] = useState(() => !cachedHomeData?.trending?.length);
+  const [loadingTrendingMonthly, setLoadingTrendingMonthly] = useState(() => !cachedHomeData?.trendingMonthly?.length);
 
   const [authModal, setAuthModal] = useState<{
     isOpen: boolean;
@@ -67,6 +101,8 @@ export default function HomePage() {
           if (parsed.movies?.length) setLatestMovies(parsed.movies);
           if (parsed.series?.length) setLatestSeries(parsed.series);
           if (parsed.genres?.length) setGenreRows(parsed.genres);
+          if (parsed.trending?.length) { setTrendingContent(parsed.trending); setLoadingTrending(false); }
+          if (parsed.trendingMonthly?.length) { setTrendingContentMonthly(parsed.trendingMonthly); setLoadingTrendingMonthly(false); }
           setLoadingHero(false);
           setLoadingMovies(false);
           setLoadingSeries(false);
@@ -127,6 +163,40 @@ export default function HomePage() {
       } catch {}
     }).catch(() => {
       setLoadingGenres(false);
+    });
+
+    // 5. FAST PARALLEL FETCH: Trending Content (Week)
+    getTrendingContentClient(16).then((trendingRes) => {
+      if (Array.isArray(trendingRes) && trendingRes.length > 0) {
+        setTrendingContent(trendingRes);
+        cachedHomeData = { ...(cachedHomeData || {}), trending: trendingRes };
+        try {
+          if (cachedHomeData) {
+            sessionStorage.setItem('kilax_home_cache_v1', JSON.stringify(cachedHomeData));
+          }
+        } catch {}
+      }
+      setLoadingTrending(false);
+    }).catch(() => {
+      setLoadingTrending(false);
+    });
+
+    // 6. FAST PARALLEL FETCH: Trending Content (Month)
+    getTrendingContentClientMonthly(24).then((trendingRes) => {
+      if (Array.isArray(trendingRes) && trendingRes.length > 0) {
+        // Randomize the items to ensure the monthly trending section looks completely different
+        const shuffled = [...trendingRes].sort(() => Math.random() - 0.5);
+        setTrendingContentMonthly(shuffled);
+        cachedHomeData = { ...(cachedHomeData || {}), trendingMonthly: shuffled };
+        try {
+          if (cachedHomeData) {
+            sessionStorage.setItem('kilax_home_cache_v1', JSON.stringify(cachedHomeData));
+          }
+        } catch {}
+      }
+      setLoadingTrendingMonthly(false);
+    }).catch(() => {
+      setLoadingTrendingMonthly(false);
     });
 
   }, []);
@@ -251,7 +321,89 @@ export default function HomePage() {
         </section>
 
         {/* Netflix-style Content Rows */}
-        <div className="relative z-10 -mt-8 md:-mt-12 lg:-mt-16 pb-8">
+        <div className="relative z-10 -mt-2 pb-8 pt-6 bg-gradient-to-t from-black via-black to-transparent trending-container">
+
+          <style>{`
+            @keyframes shimmer-purple {
+              0% { background-position: 0% center; }
+              100% { background-position: 200% center; }
+            }
+            /* Add intense purple glow to NetflixCard inside trending sections */
+            .trending-section .group > a > div {
+              transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s ease;
+            }
+            .trending-section .group:hover > a > div {
+              box-shadow: 0 0 35px 8px rgba(168, 85, 247, 0.5), 0 0 0 2px rgba(168, 85, 247, 0.9);
+              border-radius: 0.5rem;
+            }
+          `}</style>
+
+          {/* ===== TRENDING ROW (THIS WEEK) ===== */}
+          {(trendingContent.length > 0 || loadingTrending) && (
+            <section className="mb-12 trending-section">
+              <div className="container mx-auto px-4 md:px-12">
+                {/* Section Header */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center">
+                    <h2 className="text-xl md:text-2xl font-black tracking-tight"
+                        style={{ background: 'linear-gradient(90deg, #d8b4fe, #9333ea, #d8b4fe)', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent', backgroundSize: '200% auto', animation: 'shimmer-purple 2s linear infinite' }}>
+                      Trending
+                    </h2>
+                  </div>
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(168,85,247,0.8), transparent)' }}></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-purple-500 text-purple-300 bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    This Week
+                  </span>
+                </div>
+
+                {loadingTrending && trendingContent.length === 0 ? (
+                  <HeartbeatRowSkeleton title="" />
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide pt-2 px-1 -mx-1">
+                    {trendingContent.map((item: any) => (
+                      <div key={item.id} className="flex-shrink-0 w-[120px] md:w-[150px] lg:w-[160px]">
+                        <NetflixCard content={item} type={item.type || 'movie'} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ===== TRENDING ROW (THIS MONTH) ===== */}
+          {(trendingContentMonthly.length > 0 || loadingTrendingMonthly) && (
+            <section className="mb-12 trending-section">
+              <div className="container mx-auto px-4 md:px-12">
+                {/* Section Header */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center">
+                    <h2 className="text-xl md:text-2xl font-black tracking-tight"
+                        style={{ background: 'linear-gradient(90deg, #d8b4fe, #9333ea, #d8b4fe)', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent', backgroundSize: '200% auto', animation: 'shimmer-purple 2s linear infinite' }}>
+                      Trending
+                    </h2>
+                  </div>
+                  <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(168,85,247,0.8), transparent)' }}></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-purple-500 text-purple-300 bg-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    This Month
+                  </span>
+                </div>
+
+                {loadingTrendingMonthly && trendingContentMonthly.length === 0 ? (
+                  <HeartbeatRowSkeleton title="" />
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide pt-2 px-1 -mx-1">
+                    {trendingContentMonthly.map((item: any) => (
+                      <div key={item.id} className="flex-shrink-0 w-[120px] md:w-[150px] lg:w-[160px]">
+                        <NetflixCard content={item} type={item.type || 'movie'} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+          {/* ===== END TRENDING SECTIONS ===== */}
 
           {/* Latest Movies Row with Heartbeat Life-Support Loader */}
           <section className="mb-12">

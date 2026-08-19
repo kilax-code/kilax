@@ -1,16 +1,34 @@
-import Footer from '@/components/Footer';
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Kilax Premium Subscription - Unlimited Luganda Movies & Downloads",
+  description:
+    "Upgrade to Kilax Premium to watch and download unlimited Luganda translated movies and series by VJ Junior, Omutaka Ice P, VJ Jingo and more. Ad-free HD streaming and offline downloads.",
+  keywords: [
+    "kilax movies subscription",
+    "kilax premium",
+    "uganda movie subscription",
+    "luganda movies download subscription",
+    "kilax payment",
+  ],
+  alternates: {
+    canonical: "https://www.kilaxmovies.com/subscribe",
+  },
+};
 
 export default function SubscribePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black text-white">
       {/* Header Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-400 to-orange-600">
+      <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-500">
         <div className="container mx-auto px-4 text-center">
-          <div className="h-16 w-16 text-white mx-auto mb-6 text-6xl">📧</div>
-          <h1 className="text-4xl font-bold text-white mb-4">Subscribe to Kilax Movies</h1>
+          <div className="text-6xl mb-4">👑</div>
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+            Kilax Premium
+          </h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Join thousands of movie lovers and get the latest reviews, recommendations,
-            and cinema insights delivered straight to your inbox.
+            Unlock unlimited HD streaming and offline downloads for all Luganda translated movies and series by VJ Junior, Omutaka Ice P, VJ Jingo and more.
           </p>
         </div>
       </section>
@@ -18,139 +36,67 @@ export default function SubscribePage() {
       {/* Benefits Section */}
       <section className="py-16 container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Why Subscribe?</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto">
-            Get exclusive access to premium content and be the first to know about the latest movies
+          <h2 className="text-3xl font-bold mb-4 text-white">Why Upgrade to Premium?</h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Get the full Kilax Movies experience with zero restrictions
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <div className="p-6 text-center bg-white rounded-lg shadow hover:shadow-orange-400 transition-shadow">
-            <div className="h-8 w-8 text-orange-500 mx-auto mb-3 text-3xl">⭐</div>
-            <h3 className="font-semibold mb-2">Exclusive Reviews</h3>
-            <p className="text-sm text-gray-500">
-              Get early access to our in-depth movie reviews before they&apos;re published
+          <div className="p-6 text-center bg-gray-900 border border-gray-800 rounded-2xl hover:border-orange-500/50 transition-colors">
+            <div className="text-4xl mb-3">⚡</div>
+            <h3 className="font-bold text-white mb-2">Fast HD Streaming</h3>
+            <p className="text-sm text-gray-400">
+              Stream in full high definition with zero buffering on phone, PC, and TV.
             </p>
           </div>
-          <div className="p-6 text-center bg-white rounded-lg shadow hover:shadow-orange-400 transition-shadow">
-            <div className="h-8 w-8 text-orange-500 mx-auto mb-3 text-3xl">🔔</div>
-            <h3 className="font-semibold mb-2">Weekly Roundup</h3>
-            <p className="text-sm text-gray-500">
-              Curated weekly newsletter with the best movies to watch
+          <div className="p-6 text-center bg-gray-900 border border-gray-800 rounded-2xl hover:border-orange-500/50 transition-colors">
+            <div className="text-4xl mb-3">⬇️</div>
+            <h3 className="font-bold text-white mb-2">Unlimited Downloads</h3>
+            <p className="text-sm text-gray-400">
+              Download movies and episodes to watch offline anywhere, anytime.
             </p>
           </div>
-          <div className="p-6 text-center bg-white rounded-lg shadow hover:shadow-orange-400 transition-shadow">
-            <div className="h-8 w-8 text-orange-500 mx-auto mb-3 text-3xl">⏰</div>
-            <h3 className="font-semibold mb-2">No Spam</h3>
-            <p className="text-sm text-gray-500">
-              Quality over quantity - only valuable content, no spam
+          <div className="p-6 text-center bg-gray-900 border border-gray-800 rounded-2xl hover:border-orange-500/50 transition-colors">
+            <div className="text-4xl mb-3">🎬</div>
+            <h3 className="font-bold text-white mb-2">All VJ Catalogs</h3>
+            <p className="text-sm text-gray-400">
+              Complete access to VJ Junior, Omutaka Ice P, VJ Jingo, VJ Emmy, and all VJs.
             </p>
           </div>
-          <div className="p-6 text-center bg-white rounded-lg shadow hover:shadow-orange-400 transition-shadow">
-            <div className="h-8 w-8 text-orange-500 mx-auto mb-3 text-3xl">📧</div>
-            <h3 className="font-semibold mb-2">Personalized</h3>
-            <p className="text-sm text-gray-500">
-              Customized recommendations based on your movie preferences
+          <div className="p-6 text-center bg-gray-900 border border-gray-800 rounded-2xl hover:border-orange-500/50 transition-colors">
+            <div className="text-4xl mb-3">📱</div>
+            <h3 className="font-bold text-white mb-2">Mobile Money Payments</h3>
+            <p className="text-sm text-gray-400">
+              Easy, instant activation via MTN Mobile Money and Airtel Money.
             </p>
           </div>
         </div>
-      </section>
 
-      {/* Subscription Form */}
-      <section className="py-16 bg-orange-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">Join Our Community</h2>
-              <p className="text-gray-500">
-                Subscribe now and become part of the Kilax Movies family
-              </p>
-            </div>
-
-            <form className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block font-medium">First Name</label>
-                  <input
-                    id="name"
-                    name="name"
-                    className="block w-full rounded border border-orange-200 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                    placeholder="Your first name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block font-medium">Email Address</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    className="block w-full rounded border border-orange-200 px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                    placeholder="your.email@example.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-base font-semibold">What would you like to receive?</label>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="reviews" name="reviews" defaultChecked className="accent-orange-500 w-4 h-4" />
-                    <label htmlFor="reviews" className="text-sm">
-                      <span className="font-medium">Movie Reviews</span> - Our latest in-depth movie reviews and ratings
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="recommendations" name="recommendations" defaultChecked className="accent-orange-500 w-4 h-4" />
-                    <label htmlFor="recommendations" className="text-sm">
-                      <span className="font-medium">Recommendations</span> - Personalized movie suggestions based on your taste
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="news" name="news" className="accent-orange-500 w-4 h-4" />
-                    <label htmlFor="news" className="text-sm">
-                      <span className="font-medium">Movie News</span> - Latest updates from the film industry
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="interviews" name="interviews" className="accent-orange-500 w-4 h-4" />
-                    <label htmlFor="interviews" className="text-sm">
-                      <span className="font-medium">Interviews</span> - Exclusive interviews with directors and actors
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-orange-100 p-4 rounded-lg">
-                <p className="text-sm text-gray-500">
-                  🎬 <strong>Free Forever:</strong> Our newsletter is completely free.
-                  You can unsubscribe at any time with one click.
-                </p>
-              </div>
-
-              <button type="submit" className="w-full px-4 py-3 rounded bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition">
-                Subscribe to Newsletter
-              </button>
-            </form>
-
-            <div className="text-center mt-6">
-              <p className="text-xs text-gray-500">
-                By subscribing, you agree to our{' '}
-                <a href="/privacy-policy" className="text-orange-500 hover:underline">
-                  Privacy Policy
-                </a>
-                . You can unsubscribe at any time.
-              </p>
-            </div>
+        {/* Action button */}
+        <div className="text-center bg-gray-900 border border-orange-500/30 rounded-3xl p-12 max-w-2xl mx-auto">
+          <h3 className="text-2xl font-bold text-white mb-3">Ready to Start Watching?</h3>
+          <p className="text-gray-400 mb-8">
+            Subscribe now using MTN Mobile Money, Airtel Money, or card. Instant activation.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://wa.me/256780846800?text=Hello%2C%20I%20want%20to%20subscribe%20to%20Kilax%20Premium"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg transition"
+            >
+              Subscribe via WhatsApp
+            </a>
+            <Link
+              href="/signin"
+              className="px-8 py-4 rounded-xl border border-gray-700 hover:border-orange-500 text-gray-300 hover:text-white font-bold text-lg transition"
+            >
+              Sign In to Account
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* Social Proof */}
-      {/* (section removed) */}
-      
-      <Footer />
     </div>
   );
-} 
+}

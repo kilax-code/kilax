@@ -378,9 +378,9 @@ export async function getKilaxExclusiveSeries(limit = 6) {
   }
 }
 
-export async function getKilaxExclusiveContent(limit = 12) {
+export async function getKilaxExclusiveContent(limit = 12, timeWindow = 'week', page = 1) {
   try {
-    const all = await Reelplexi.getReelplexiTrendingAll(1, limit);
+    const all = await Reelplexi.getReelplexiTrendingAll(page, limit, timeWindow);
     return all as Array<(Movie | Series) & { type: 'movie' | 'series'; vjs: { id: string; name: string } | null }>;
   } catch (error) {
     console.error('Error fetching Kilax exclusive content:', error);

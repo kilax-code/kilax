@@ -371,8 +371,8 @@ export async function getReelplexiGenres() {
   });
 }
 
-export async function getReelplexiTrendingAll(page = 1, perPage = 20) {
-  const res = await fetchReelplexi('/v1/trending/all', { page, per_page: perPage });
+export async function getReelplexiTrendingAll(page = 1, perPage = 20, timeWindow = 'week') {
+  const res = await fetchReelplexi(`/v1/trending/all`, { page, per_page: perPage, time_window: timeWindow });
   return (res.data || []).map((item: any) => {
     if (item.type === 'series' || item.first_air_date != null) {
       return normalizeReelplexiSeries(item);

@@ -10,9 +10,9 @@ import { Search } from "lucide-react";
 import PremiumUpgradeModal from "@/components/PremiumUpgradeModal";
 
 const leftNavItems: { href: string; label: React.ReactNode }[] = [
+  { href: "/", label: "Home" },
   { href: "/movies", label: "Movies" },
   { href: "/series", label: "Series" },
-  { href: "/non-translated", label: "Non Translated" },
 ];
 
 export default function Header() {
@@ -428,29 +428,7 @@ export default function Header() {
           <div className="border-t border-gray-800 bg-black shadow-lg">
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
               <div className="flex flex-col space-y-1">
-                {/* Home Link with Logo */}
-                <Link
-                  href="/"
-                  className={`px-4 py-3 sm:py-4 rounded-lg transition-all duration-200 hover:bg-black active:bg-gray-700 hover:translate-x-2 text-base sm:text-lg min-h-[44px] flex items-center font-semibold ${isActive("/")
-                    ? "text-orange-500 font-medium bg-black border-r-2 border-orange-500"
-                    : "text-gray-300 hover:text-orange-400"
-                    }`}
-                  onClick={() => setIsMenuOpen(false)}
-                  style={{
-                    animationDelay: "0ms",
-                    animation: isMenuOpen ? `slideIn 0.3s ease-out forwards` : ""
-                  }}
-                >
-                  <Image
-                    src="/logo.png"
-                    alt="Kilax Movies Logo"
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 object-contain rounded mr-3"
-                    priority
-                  />
-                  Home
-                </Link>
+
 
                 {leftNavItems.map((item, index) => (
                   <Link

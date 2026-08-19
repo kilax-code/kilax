@@ -1,4 +1,23 @@
+import type { Metadata } from "next";
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: "Movie Categories - Browse Luganda Translated Movies by Genre | Kilax Movies",
+  description:
+    "Browse Kilax Movies by genre. Find the best Luganda translated action, drama, sci-fi, comedy, horror, and romance movies and series by VJ Junior, Omutaka Ice P, VJ Jingo and more.",
+  keywords: [
+    "ugandan movie categories",
+    "luganda action movies",
+    "luganda drama movies",
+    "luganda sci-fi movies",
+    "translated movies genres",
+    "kilax movies categories",
+  ],
+  alternates: {
+    canonical: "https://www.kilaxmovies.com/categories",
+  },
+};
+
 
 
 const categories = [
@@ -100,7 +119,7 @@ export default function CategoriesPage() {
                 {category.count} reviews available
               </p>
               <Link
-                href={`/blog?category=${category.name.toLowerCase()}`}
+                href={`/movies`}
                 className="block w-full px-4 py-2 border border-orange-500 text-orange-500 rounded hover:bg-orange-500 hover:text-white transition-colors"
               >
                 Explore {category.name}
@@ -138,13 +157,13 @@ export default function CategoriesPage() {
                 </p>
                 <div className="flex gap-4">
                   <Link
-                    href="/blog?category=sci-fi"
+                    href="/movies"
                     className="px-4 py-2 rounded bg-orange-500 hover:bg-orange-600 text-white font-semibold transition"
                   >
-                    Read Sci-Fi Reviews
+                    Browse All Movies
                   </Link>
                   <Link
-                    href="/blog"
+                    href="/categories"
                     className="px-4 py-2 rounded border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold transition"
                   >
                     All Categories
@@ -190,13 +209,13 @@ export default function CategoriesPage() {
             href="/contact"
             className="px-6 py-3 rounded bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition"
           >
-            Request a Review
+            Contact Us
           </Link>
           <Link
-            href="/blog"
+            href="/movies"
             className="px-6 py-3 rounded border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-semibold text-lg transition"
           >
-            Browse All Posts
+            Browse All Movies
           </Link>
         </div>
       </section>

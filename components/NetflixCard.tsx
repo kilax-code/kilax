@@ -111,10 +111,12 @@ export const NetflixCard = ({ content, type, isNonTranslated = false }: NetflixC
           {content.release_date && (
             <span>{new Date(content.release_date).getFullYear()}</span>
           )}
-          {vjName && (
+          {('genre_ids' in content && Array.isArray(content.genre_ids) && content.genre_ids.length > 0) && (
             <>
               <span>•</span>
-              <span className="text-orange-400 font-semibold truncate max-w-[70px]">{vjName}</span>
+              <span className="text-orange-400 font-medium capitalize truncate max-w-[90px]">
+                {content.genre_ids.slice(0, 2).join(', ')}
+              </span>
             </>
           )}
         </div>

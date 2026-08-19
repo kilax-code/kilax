@@ -159,7 +159,6 @@ export default function SeriesPage() {
       <div className="container mx-auto px-4 sm:px-6">
         <h1 className="text-3xl md:text-4xl font-bold mb-8 flex items-center">
           Series
-          <span className="text-sm text-gray-400 ml-2">({series.length}{!isFiltering && hasMore ? '+' : ''} total)</span>
         </h1>
 
         <div className="mb-8 flex flex-col md:flex-row gap-4">
@@ -229,7 +228,7 @@ export default function SeriesPage() {
         </div>
 
         {series.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-x-2 gap-y-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-3 gap-y-6">
             {series.map((show) => (
               <NetflixCard key={show.id} content={show} type="series" />
             ))}

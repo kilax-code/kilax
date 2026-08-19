@@ -1,5 +1,5 @@
 import * as Reelplexi from './reelplexi'
-import { getMovies, getSeries, getVJContent, getGenreRowsForHome, searchMovies, searchSeries, getVJs, getMovieById, getSeriesById, getMovieStream, getEpisodeStream } from './api'
+import { getMovies, getSeries, getVJContent, getGenreRowsForHome, searchMovies, searchSeries, getVJs, getMovieById, getSeriesById, getMovieStream, getEpisodeStream, getKilaxExclusiveContent } from './api'
 
 export async function getMoviesClient(page = 1, limit = 50) {
   try {
@@ -52,6 +52,25 @@ export async function getGenreRowsClient(limit = 12) {
     return await getGenreRowsForHome(limit)
   } catch (error) {
     console.error('Error fetching genre rows:', error)
+    return []
+  }
+}
+
+export async function getTrendingContentClient(limit = 16) {
+  try {
+    return await getKilaxExclusiveContent(limit, 'day', 1)
+  } catch (error) {
+    console.error('Error fetching weekly trending content:', error)
+    return []
+  }
+}
+
+export async function getTrendingContentClientMonthly(limit = 16) {
+  try {
+    // Fetch page 2 to ensure we get a different set of trending items
+    return await getKilaxExclusiveContent(limit, 'week', 2)
+  } catch (error) {
+    console.error('Error fetching monthly trending content:', error)
     return []
   }
 }

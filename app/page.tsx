@@ -474,9 +474,29 @@ export default function HomePage() {
             <div className="container mx-auto px-4 md:px-12 mb-12">
               <HeartbeatRowSkeleton title="Genre Collections" />
             </div>
-          ) : null}
+            ) : null}
         </div>
       </div>
+
+      {/* About Kilax Movies - visible to Google verification reviewers */}
+      <section className="border-t border-gray-800 mt-8 py-10">
+        <div className="container mx-auto px-4 md:px-12 max-w-4xl">
+          <h2 className="text-lg font-bold text-white mb-3">About Kilax Movies</h2>
+          <p className="text-gray-400 text-sm leading-relaxed mb-4">
+            Kilax Movies is Uganda&apos;s #1 streaming platform for Luganda translated movies and series.
+            Watch and download HD Luganda katogo films narrated by top Ugandan Video Jockeys including
+            VJ Junior, Omutaka Ice P, VJ Jingo (VJ Jjingo), VJ Emmy, VJ Moon, VJ KK, and VJ Mark.
+            Stream free or subscribe to Kilax Movies Premium for unlimited offline downloads and
+            ad-free HD entertainment. Kilax Movies is available on web at kilaxmovies.com and as a
+            free Android app on the Google Play Store.
+          </p>
+          <p className="text-gray-500 text-xs">
+            Kilax Movies uses Google Sign-In to allow users to securely create an account and log
+            into our streaming platform. We only access your name and email address to personalise
+            your experience.
+          </p>
+        </div>
+      </section>
 
       {/* Auth Required Modal */}
       <AuthRequiredModal

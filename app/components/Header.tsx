@@ -103,6 +103,7 @@ export default function Header() {
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded"
                 priority
               />
+              <span className="ml-2 font-bold text-xl text-white tracking-tight">Kilax Movies</span>
             </Link>
 
             {/* Mobile User Section */}

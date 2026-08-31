@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { getSubscriptionPlans } from '@/lib/subscriptions';
-import { SubscriptionPlan } from '@/lib/supabase';
+import { supabase, SubscriptionPlan } from '@/lib/supabase';
 import { getRecaptchaToken, loadRecaptchaScript } from '@/lib/recaptcha-client';
 import Link from 'next/link';
 
@@ -140,10 +140,19 @@ function PaymentPageContent() {
 
       const amount = selectedPlan.amount || 10000;
 
+      // Get the Supabase session token for server-side auth verification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Your session has expired. Please sign in again.');
+      }
+
       // Initiate payment via MakyPay
       const response = await fetch('/api/makypay/initiate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           userId: user.id,
           phoneNumber: finalPhone,

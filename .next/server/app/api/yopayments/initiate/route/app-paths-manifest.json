@@ -1,0 +1,3 @@
+{
+  "/api/yopayments/initiate/route": "app/api/yopayments/initiate/route.js"
+}

@@ -1,0 +1,7 @@
+1:"$Sreact.fragment"
+2:"$Sreact.suspense"
+3:I[28080,["/_next/static/chunks/f82a0f7af2b48142.js","/_next/static/chunks/723775c88e95e902.js","/_next/static/chunks/c40fff5f6f96e60e.js","/_next/static/chunks/4689f5979bc89961.js","/_next/static/chunks/6ba47a3822b2ce17.js"],"default"]
+4:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+:HL["/logo.png","image"]
+0:{"buildId":"99qJFMhEx7Qpzs9b4DrzI","rsc":["$","$1","c",{"children":[["$","$2",null,{"fallback":["$","div",null,{"className":"flex min-h-screen items-center justify-center bg-black","children":["$","div",null,{"className":"w-full max-w-md bg-[#23272f] rounded-2xl shadow-xl px-6 py-6 flex flex-col items-center border border-gray-800","children":[["$","div",null,{"className":"flex flex-col items-center mb-6","children":[["$","div",null,{"className":"flex items-center justify-center mb-2","children":["$","img",null,{"src":"/logo.png","alt":"Kilax Movies Logo","width":48,"height":48,"className":"w-12 h-12 object-contain rounded","style":{"margin":"0 auto"}}]}],["$","p",null,{"className":"text-gray-400 text-sm","children":"Watch your favorites"}]]}],["$","div",null,{"className":"w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"}]]}]}],"children":["$","$L3",null,{}]}],[["$","script","script-0",{"src":"/_next/static/chunks/6ba47a3822b2ce17.js","async":true}]],["$","$L4",null,{"children":["$","$2",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null

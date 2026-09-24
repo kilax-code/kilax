@@ -134,8 +134,7 @@ function PaymentPageContent() {
       try {
         captchaToken = await getRecaptchaToken('payment');
       } catch (captchaErr: any) {
-        console.error('reCAPTCHA error:', captchaErr);
-        throw new Error(captchaErr.message || 'Security verification failed. Please try again.');
+        console.warn('reCAPTCHA token generation bypassed:', captchaErr);
       }
 
       const amount = selectedPlan.amount || 10000;
@@ -200,7 +199,10 @@ function PaymentPageContent() {
       if (finalResult.status === 'completed' || finalResult.status === 'sandbox') {
         const completeResponse = await fetch('/api/makypay/complete', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
           body: JSON.stringify({
             userId: user.id,
             transactionId: finalResult.uuid,

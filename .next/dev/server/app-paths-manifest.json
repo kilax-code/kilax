@@ -1,0 +1,8 @@
+{
+  "/about/page": "app/about/page.js",
+  "/api/reelplexi/[...path]/route": "app/api/reelplexi/[...path]/route.js",
+  "/movies/page": "app/movies/page.js",
+  "/page": "app/page.js",
+  "/series/page": "app/series/page.js",
+  "/vjs/page": "app/vjs/page.js"
+}

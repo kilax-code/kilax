@@ -1,0 +1,3 @@
+{
+  "/api/reelplexi/[...path]/route": "app/api/reelplexi/[...path]/route.js"
+}

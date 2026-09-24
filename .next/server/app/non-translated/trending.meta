@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/non-translated/layout,_N_T_/non-translated/trending/layout,_N_T_/non-translated/trending/page,_N_T_/non-translated/trending"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/non-translated/trending/__PAGE__",
+    "/non-translated/trending",
+    "/non-translated",
+    "/_index",
+    "/_head"
+  ]
+}

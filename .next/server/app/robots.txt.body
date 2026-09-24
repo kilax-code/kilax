@@ -1,0 +1,32 @@
+User-Agent: *
+Allow: /
+Allow: /movies
+Allow: /movies/
+Allow: /series
+Allow: /series/
+Allow: /categories
+Allow: /non-translated
+Allow: /non-translated/
+Allow: /about
+Allow: /contact
+Allow: /download
+Allow: /search
+Allow: /signin
+Allow: /signup
+Allow: /subscribe
+Disallow: /player
+Disallow: /player/
+Disallow: /profile
+Disallow: /profile/
+Disallow: /api/
+Disallow: /reset-password
+Disallow: /reset-password/
+Disallow: /auth/
+Disallow: /payment
+Disallow: /payment/
+
+User-Agent: Googlebot-Image
+Allow: /
+
+Host: https://www.kilaxmovies.com
+Sitemap: https://www.kilaxmovies.com/sitemap.xml

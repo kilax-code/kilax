@@ -1,0 +1,433 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/reelplexi/[...path]",
+      "regex": "^/api/reelplexi/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpath": "nxtPpath"
+      },
+      "namedRegex": "^/api/reelplexi/(?<nxtPpath>.+?)(?:/)?$"
+    },
+    {
+      "page": "/movies/[id]",
+      "regex": "^/movies/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/movies/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/non-translated/movies/[id]",
+      "regex": "^/non\\-translated/movies/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/non\\-translated/movies/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/non-translated/series/[id]",
+      "regex": "^/non\\-translated/series/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/non\\-translated/series/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/series/[id]",
+      "regex": "^/series/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/series/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/api/anime/search",
+      "regex": "^/api/anime/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/anime/search(?:/)?$"
+    },
+    {
+      "page": "/api/content-stream",
+      "regex": "^/api/content\\-stream(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/content\\-stream(?:/)?$"
+    },
+    {
+      "page": "/api/download",
+      "regex": "^/api/download(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/download(?:/)?$"
+    },
+    {
+      "page": "/api/english-movies-search",
+      "regex": "^/api/english\\-movies\\-search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/english\\-movies\\-search(?:/)?$"
+    },
+    {
+      "page": "/api/english-series-search",
+      "regex": "^/api/english\\-series\\-search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/english\\-series\\-search(?:/)?$"
+    },
+    {
+      "page": "/api/genres",
+      "regex": "^/api/genres(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/genres(?:/)?$"
+    },
+    {
+      "page": "/api/makypay/complete",
+      "regex": "^/api/makypay/complete(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/makypay/complete(?:/)?$"
+    },
+    {
+      "page": "/api/makypay/initiate",
+      "regex": "^/api/makypay/initiate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/makypay/initiate(?:/)?$"
+    },
+    {
+      "page": "/api/makypay/status",
+      "regex": "^/api/makypay/status(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/makypay/status(?:/)?$"
+    },
+    {
+      "page": "/api/makypay/webhook",
+      "regex": "^/api/makypay/webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/makypay/webhook(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/genres",
+      "regex": "^/api/reelplexi/genres(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/genres(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/movie",
+      "regex": "^/api/reelplexi/movie(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/movie(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/movies",
+      "regex": "^/api/reelplexi/movies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/movies(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/movies-by-vj",
+      "regex": "^/api/reelplexi/movies\\-by\\-vj(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/movies\\-by\\-vj(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/search",
+      "regex": "^/api/reelplexi/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/search(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/series",
+      "regex": "^/api/reelplexi/series(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/series(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/series-by-vj",
+      "regex": "^/api/reelplexi/series\\-by\\-vj(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/series\\-by\\-vj(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/stream",
+      "regex": "^/api/reelplexi/stream(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/stream(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/vj-content",
+      "regex": "^/api/reelplexi/vj\\-content(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/vj\\-content(?:/)?$"
+    },
+    {
+      "page": "/api/reelplexi/vjs",
+      "regex": "^/api/reelplexi/vjs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reelplexi/vjs(?:/)?$"
+    },
+    {
+      "page": "/api/search",
+      "regex": "^/api/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/search(?:/)?$"
+    },
+    {
+      "page": "/api/stream",
+      "regex": "^/api/stream(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stream(?:/)?$"
+    },
+    {
+      "page": "/api/vjs",
+      "regex": "^/api/vjs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/vjs(?:/)?$"
+    },
+    {
+      "page": "/api/yopayments/complete",
+      "regex": "^/api/yopayments/complete(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/yopayments/complete(?:/)?$"
+    },
+    {
+      "page": "/api/yopayments/initiate",
+      "regex": "^/api/yopayments/initiate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/yopayments/initiate(?:/)?$"
+    },
+    {
+      "page": "/api/yopayments/status",
+      "regex": "^/api/yopayments/status(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/yopayments/status(?:/)?$"
+    },
+    {
+      "page": "/auth/callback",
+      "regex": "^/auth/callback(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback(?:/)?$"
+    },
+    {
+      "page": "/auth/callback-client",
+      "regex": "^/auth/callback\\-client(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/callback\\-client(?:/)?$"
+    },
+    {
+      "page": "/auth/login",
+      "regex": "^/auth/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/login(?:/)?$"
+    },
+    {
+      "page": "/auth/success",
+      "regex": "^/auth/success(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/success(?:/)?$"
+    },
+    {
+      "page": "/categories",
+      "regex": "^/categories(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/categories(?:/)?$"
+    },
+    {
+      "page": "/contact",
+      "regex": "^/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contact(?:/)?$"
+    },
+    {
+      "page": "/download",
+      "regex": "^/download(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/download(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/movies",
+      "regex": "^/movies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/movies(?:/)?$"
+    },
+    {
+      "page": "/non-translated",
+      "regex": "^/non\\-translated(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated(?:/)?$"
+    },
+    {
+      "page": "/non-translated/animations",
+      "regex": "^/non\\-translated/animations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated/animations(?:/)?$"
+    },
+    {
+      "page": "/non-translated/anime",
+      "regex": "^/non\\-translated/anime(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated/anime(?:/)?$"
+    },
+    {
+      "page": "/non-translated/movies",
+      "regex": "^/non\\-translated/movies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated/movies(?:/)?$"
+    },
+    {
+      "page": "/non-translated/series",
+      "regex": "^/non\\-translated/series(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated/series(?:/)?$"
+    },
+    {
+      "page": "/non-translated/trending",
+      "regex": "^/non\\-translated/trending(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/non\\-translated/trending(?:/)?$"
+    },
+    {
+      "page": "/payment",
+      "regex": "^/payment(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/payment(?:/)?$"
+    },
+    {
+      "page": "/player",
+      "regex": "^/player(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/player(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/reset-password",
+      "regex": "^/reset\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reset\\-password(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/search",
+      "regex": "^/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/search(?:/)?$"
+    },
+    {
+      "page": "/series",
+      "regex": "^/series(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/series(?:/)?$"
+    },
+    {
+      "page": "/signin",
+      "regex": "^/signin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signin(?:/)?$"
+    },
+    {
+      "page": "/signup",
+      "regex": "^/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/subscribe",
+      "regex": "^/subscribe(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/subscribe(?:/)?$"
+    },
+    {
+      "page": "/terms",
+      "regex": "^/terms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/terms(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

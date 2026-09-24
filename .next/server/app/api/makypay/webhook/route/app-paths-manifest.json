@@ -1,0 +1,3 @@
+{
+  "/api/makypay/webhook/route": "app/api/makypay/webhook/route.js"
+}

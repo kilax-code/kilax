@@ -1,0 +1,3 @@
+module.exports=[54246,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944),e=a.i(97895);function f(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{let b;(b=(0,e.getRedirectCookie)())||(b=new URLSearchParams(window.location.search).get("redirect")),setTimeout(()=>{b?((0,e.clearRedirectCookie)(),console.log("Callback-client: Redirecting to:",b),a.push(b)):(console.log("Callback-client: No redirect path, going to home"),a.push("/"))},200)},[a]),(0,b.jsx)("div",{className:"min-h-screen bg-black flex items-center justify-center",children:(0,b.jsx)("div",{className:"animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"})})}a.s(["default",()=>f])}];
+
+//# sourceMappingURL=app_auth_callback-client_page_tsx_d757192b._.js.map

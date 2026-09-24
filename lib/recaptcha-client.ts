@@ -50,25 +50,30 @@ export function loadRecaptchaScript(): Promise<void> {
 export async function getRecaptchaToken(action = 'payment'): Promise<string> {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   if (!siteKey) {
-    throw new Error('reCAPTCHA site key is missing in client environment.');
+    console.warn('reCAPTCHA site key is not defined in client environment. Skipping token generation.');
+    return '';
   }
 
-  await loadRecaptchaScript();
+  try {
+    await loadRecaptchaScript();
+  } catch (loadErr) {
+    console.warn('Could not load reCAPTCHA script (may be blocked by adblocker):', loadErr);
+    return '';
+  }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!window.grecaptcha) {
-      return reject(new Error('reCAPTCHA script failed to initialize. Please check your internet connection or ad blocker.'));
+      console.warn('reCAPTCHA object not available on window. Skipping token generation.');
+      return resolve('');
     }
 
     window.grecaptcha.ready(async () => {
       try {
         const token = await window.grecaptcha!.execute(siteKey, { action });
-        if (!token) {
-          return reject(new Error('Failed to retrieve reCAPTCHA token.'));
-        }
-        resolve(token);
+        resolve(token || '');
       } catch (err: any) {
-        reject(new Error(err.message || 'Error executing reCAPTCHA verification'));
+        console.warn('Error executing reCAPTCHA verification:', err);
+        resolve('');
       }
     });
   });

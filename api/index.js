@@ -1,0 +1,477 @@
+/**
+ * Kilax MakyPay Payment Gateway Backend API
+ * 
+ * Secure proxy server that handles MakyPay payment requests
+ * - Keeps API secrets server-side (never exposed to mobile app)
+ * - Authenticates requests using Supabase JWT tokens
+ * - Logs transactions to Supabase database
+ * - Validates and sanitizes all inputs
+ */
+
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Environment variables validation
+const requiredEnvVars = [
+  'MAKYPAY_API_KEY',
+  'MAKYPAY_API_SECRET',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_KEY'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
+// Initialize Supabase Admin Client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// MakyPay API Configuration
+const MAKYPAY_API_BASE = 'https://api.makypay.com/v1';
+const MAKYPAY_AUTH = Buffer.from(
+  `${process.env.MAKYPAY_API_KEY}:${process.env.MAKYPAY_API_SECRET}`
+).toString('base64');
+
+// Middleware
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-platform']
+}));
+app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+/**
+ * Authentication Middleware
+ * Verifies Supabase JWT token from Authorization header
+ */
+async function authenticateRequest(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Missing or invalid authorization header',
+        message: 'Please sign in to continue'
+      });
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Verify JWT token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return res.status(401).json({
+        error: 'Invalid authentication token',
+        message: 'Please sign in again'
+      });
+    }
+
+    // Attach user to request
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    res.status(401).json({
+      error: 'Authentication failed',
+      message: error.message
+    });
+  }
+}
+
+/**
+ * Health check endpoint
+ */
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'Kilax MakyPay API',
+    version: '1.0.0'
+  });
+});
+
+/**
+ * POST /api/makypay/collect
+ * Initiate mobile money payment collection
+ */
+app.post('/api/makypay/collect', authenticateRequest, async (req, res) => {
+  try {
+    const { phoneNumber, amount, description, userId } = req.body;
+
+    // Validate inputs
+    if (!phoneNumber || !amount || !userId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'phoneNumber, amount, and userId are required'
+      });
+    }
+
+    if (amount < 500 || amount > 10000000) {
+      return res.status(400).json({
+        error: 'Invalid amount',
+        message: 'Amount must be between 500 and 10,000,000 UGX'
+      });
+    }
+
+    // Verify userId matches authenticated user
+    if (userId !== req.user.id) {
+      return res.status(403).json({
+        error: 'User ID mismatch',
+        message: 'Cannot initiate payment for another user'
+      });
+    }
+
+    // Call MakyPay API
+    const response = await axios.post(
+      `${MAKYPAY_API_BASE}/collections/mobile-money`,
+      {
+        phone_number: phoneNumber,
+        amount: amount,
+        currency: 'UGX',
+        description: description || 'Kilax Subscription Payment',
+        callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
+      },
+      {
+        headers: {
+          'Authorization': `Basic ${MAKYPAY_AUTH}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    const paymentData = response.data;
+
+    // Log transaction to database
+    await supabase.from('makypay_transactions').insert({
+      user_id: userId,
+      uuid: paymentData.uuid || paymentData.transaction_id,
+      reference: paymentData.reference || paymentData.uuid,
+      amount: amount,
+      currency: 'UGX',
+      phone_number: phoneNumber,
+      payment_method: 'makypay_mobile_money',
+      status: paymentData.status || 'pending',
+      description: description,
+      provider_response: paymentData
+    });
+
+    res.json({
+      success: true,
+      uuid: paymentData.uuid || paymentData.transaction_id,
+      reference: paymentData.reference || paymentData.uuid,
+      status: paymentData.status || 'pending',
+      message: paymentData.message || 'Payment initiated successfully',
+      description: description
+    });
+
+  } catch (error) {
+    console.error('Mobile money collection error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data?.error || 'Payment initiation failed',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
+ * POST /api/makypay/card/collect
+ * Initiate card payment collection
+ */
+app.post('/api/makypay/card/collect', authenticateRequest, async (req, res) => {
+  try {
+    const { amount, description, userId } = req.body;
+
+    if (!amount || !userId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'amount and userId are required'
+      });
+    }
+
+    if (amount < 500 || amount > 10000000) {
+      return res.status(400).json({
+        error: 'Invalid amount',
+        message: 'Amount must be between 500 and 10,000,000 UGX'
+      });
+    }
+
+    if (userId !== req.user.id) {
+      return res.status(403).json({
+        error: 'User ID mismatch',
+        message: 'Cannot initiate payment for another user'
+      });
+    }
+
+    // Call MakyPay Card API
+    const response = await axios.post(
+      `${MAKYPAY_API_BASE}/collections/card`,
+      {
+        amount: amount,
+        currency: 'UGX',
+        description: description || 'Kilax Subscription Payment',
+        return_url: process.env.MAKYPAY_RETURN_URL || 'https://kilaxmovies.com/payment/success',
+        callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
+      },
+      {
+        headers: {
+          'Authorization': `Basic ${MAKYPAY_AUTH}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+
+    const paymentData = response.data;
+
+    // Log transaction
+    await supabase.from('makypay_transactions').insert({
+      user_id: userId,
+      uuid: paymentData.uuid || paymentData.transaction_id,
+      reference: paymentData.reference || paymentData.uuid,
+      amount: amount,
+      currency: 'UGX',
+      payment_method: 'makypay_card',
+      status: paymentData.status || 'pending',
+      description: description,
+      provider_response: paymentData
+    });
+
+    res.json({
+      success: true,
+      uuid: paymentData.uuid || paymentData.transaction_id,
+      reference: paymentData.reference || paymentData.uuid,
+      redirectUrl: paymentData.payment_url || paymentData.redirect_url || '',
+      status: paymentData.status || 'pending',
+      message: paymentData.message || 'Card payment initiated',
+      description: description
+    });
+
+  } catch (error) {
+    console.error('Card collection error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data?.error || 'Card payment initiation failed',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
+ * GET /api/makypay/status/:uuid
+ * Check transaction status
+ */
+app.get('/api/makypay/status/:uuid', authenticateRequest, async (req, res) => {
+  try {
+    const { uuid } = req.params;
+
+    if (!uuid) {
+      return res.status(400).json({
+        error: 'Missing transaction UUID',
+        message: 'UUID parameter is required'
+      });
+    }
+
+    // Check MakyPay API for status
+    const response = await axios.get(
+      `${MAKYPAY_API_BASE}/transactions/${uuid}`,
+      {
+        headers: {
+          'Authorization': `Basic ${MAKYPAY_AUTH}`
+        },
+        timeout: 15000
+      }
+    );
+
+    const statusData = response.data;
+
+    // Update local database
+    await supabase
+      .from('makypay_transactions')
+      .update({
+        status: statusData.status,
+        provider_response: statusData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('uuid', uuid);
+
+    res.json({
+      success: true,
+      uuid: statusData.uuid || uuid,
+      reference: statusData.reference,
+      status: statusData.status,
+      amount: statusData.amount,
+      currency: statusData.currency || 'UGX',
+      providerReference: statusData.provider_reference
+    });
+
+  } catch (error) {
+    console.error('Status check error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data?.error || 'Status check failed',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
+ * POST /api/makypay/complete-subscription
+ * Complete subscription after successful payment
+ */
+app.post('/api/makypay/complete-subscription', authenticateRequest, async (req, res) => {
+  try {
+    const { userId, transactionUuid, subscriptionPlan, subscriptionDuration, paymentMethod } = req.body;
+
+    if (!userId || !transactionUuid || !subscriptionPlan) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'userId, transactionUuid, and subscriptionPlan are required'
+      });
+    }
+
+    if (userId !== req.user.id) {
+      return res.status(403).json({
+        error: 'User ID mismatch'
+      });
+    }
+
+    // Verify transaction is completed
+    const { data: transaction } = await supabase
+      .from('makypay_transactions')
+      .select('*')
+      .eq('uuid', transactionUuid)
+      .eq('user_id', userId)
+      .single();
+
+    if (!transaction) {
+      return res.status(404).json({
+        error: 'Transaction not found'
+      });
+    }
+
+    if (transaction.status !== 'completed' && transaction.status !== 'successful') {
+      return res.status(400).json({
+        error: 'Transaction not completed',
+        message: 'Payment must be completed before activating subscription'
+      });
+    }
+
+    // Calculate expiry
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + (subscriptionDuration * 24 * 60 * 60 * 1000));
+
+    // Update user subscription
+    const { error: updateError } = await supabase
+      .from('user_subscriptions')
+      .upsert({
+        user_id: userId,
+        subscription_type: subscriptionPlan,
+        payment_method: paymentMethod,
+        transaction_uuid: transactionUuid,
+        started_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        status: 'active',
+        updated_at: now.toISOString()
+      });
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    res.json({
+      success: true,
+      message: 'Subscription activated successfully',
+      expiresAt: expiresAt.toISOString()
+    });
+
+  } catch (error) {
+    console.error('Subscription completion error:', error);
+    
+    res.status(500).json({
+      error: 'Subscription activation failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/makypay/callback
+ * Webhook endpoint for MakyPay payment notifications
+ */
+app.post('/api/makypay/callback', async (req, res) => {
+  try {
+    console.log('MakyPay callback received:', req.body);
+
+    const { uuid, status, reference, amount } = req.body;
+
+    if (uuid) {
+      // Update transaction status
+      await supabase
+        .from('makypay_transactions')
+        .update({
+          status: status,
+          provider_response: req.body,
+          updated_at: new Date().toISOString()
+        })
+        .eq('uuid', uuid);
+    }
+
+    res.json({ success: true, message: 'Callback processed' });
+  } catch (error) {
+    console.error('Callback processing error:', error);
+    res.status(500).json({ error: 'Callback processing failed' });
+  }
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    message: `The endpoint ${req.path} does not exist`,
+    availableEndpoints: [
+      'GET /api/health',
+      'POST /api/makypay/collect',
+      'POST /api/makypay/card/collect',
+      'GET /api/makypay/status/:uuid',
+      'POST /api/makypay/complete-subscription'
+    ]
+  });
+});
+
+// Error handler
+app.use((error, req, res, next) => {
+  console.error('Unhandled error:', error);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: error.message
+  });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Kilax MakyPay API server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔐 CORS origin: ${process.env.CORS_ORIGIN || '*'}`);
+});
+
+module.exports = app;

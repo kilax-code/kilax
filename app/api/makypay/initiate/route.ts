@@ -12,7 +12,7 @@ const USER_RATE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, phoneNumber, amount, description, paymentMethod = 'mobile_money', captchaToken } = await request.json();
+    const { userId, phoneNumber, amount, description, paymentMethod = 'mobile_money', captchaToken, platform: bodyPlatform } = await request.json();
 
     if (!userId || !amount || !description) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -71,19 +71,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── 3. Bot protection: Verify reCAPTCHA token ──
-    if (!captchaToken) {
+    // ── 3. Bot protection: Verify reCAPTCHA token (exempt mobile, validated for web if configured) ──
+    const clientPlatformHeader = (request.headers.get('x-client-platform') || '').toLowerCase();
+    const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+    const origin = request.headers.get('origin');
+    const referer = request.headers.get('referer');
+    const secFetchMode = request.headers.get('sec-fetch-mode');
+
+    // Robust mobile client detection:
+    // 1. Explicit platform header or body parameter (from new app versions)
+    const isExplicitMobile =
+      clientPlatformHeader === 'mobile' ||
+      clientPlatformHeader === 'flutter' ||
+      clientPlatformHeader === 'android' ||
+      clientPlatformHeader === 'ios' ||
+      bodyPlatform === 'mobile' ||
+      bodyPlatform === 'flutter';
+
+    // 2. User-Agent heuristics for mobile frameworks (Dart/Flutter, Android, iOS, OkHttp, etc.)
+    const isMobileUserAgent =
+      userAgent.includes('dart') ||
+      userAgent.includes('kilax') ||
+      userAgent.includes('flutter') ||
+      userAgent.includes('okhttp') ||
+      userAgent.includes('cfnetwork') ||
+      userAgent.includes('dalvik');
+
+    // 3. Non-browser HTTP clients (web browsers always include origin, referer, or sec-fetch-mode on POST)
+    const isNonBrowserClient = !origin && !referer && !secFetchMode;
+
+    const isMobileClient = isExplicitMobile || isMobileUserAgent || isNonBrowserClient;
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+
+    if (captchaToken && secretKey) {
+      const captchaResult = await verifyRecaptcha(captchaToken, 0.7, clientIp);
+      if (!captchaResult.success) {
+        return NextResponse.json(
+          { error: captchaResult.error || 'Security verification failed. Please try again.' },
+          { status: 403 }
+        );
+      }
+    } else if (!isMobileClient && secretKey) {
+      // Only require captcha for web clients if the server actually has reCAPTCHA configured
       return NextResponse.json(
         { error: 'Security verification required. Please complete the captcha.' },
         { status: 400 }
-      );
-    }
-
-    const captchaResult = await verifyRecaptcha(captchaToken, 0.7, clientIp);
-    if (!captchaResult.success) {
-      return NextResponse.json(
-        { error: captchaResult.error || 'Security verification failed. Please try again.' },
-        { status: 403 }
       );
     }
 

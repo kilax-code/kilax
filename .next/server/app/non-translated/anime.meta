@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/non-translated/layout,_N_T_/non-translated/anime/layout,_N_T_/non-translated/anime/page,_N_T_/non-translated/anime"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/non-translated/anime/__PAGE__",
+    "/non-translated/anime",
+    "/non-translated",
+    "/_index",
+    "/_head"
+  ]
+}

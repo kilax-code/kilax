@@ -681,7 +681,7 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
     const durationDays = subscriptionDuration || 30;
     const expiresAt = new Date(now.getTime() + (durationDays * 24 * 60 * 60 * 1000));
 
-    // Upsert subscription record (update if exists, insert if new)
+    // 1. Upsert subscription record (update if exists, insert if new)
     const { data: subscriptionData, error: insertError } = await supabase
       .from('subscriptions')
       .upsert({
@@ -705,7 +705,23 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
       throw insertError;
     }
 
-    console.log('Subscription created:', subscriptionData);
+    console.log('✅ Subscription record created:', subscriptionData);
+
+    // 2. CRITICAL: Update profiles table (this is what the app reads!)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        subscription: subscriptionPlan,
+        subscription_expiry_date: expiresAt.toISOString()
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('❌ Profile update error:', profileError);
+      // Don't throw - subscription was created, just log the error
+    } else {
+      console.log('✅ Profile subscription updated for user:', userId);
+    }
 
     res.json({
       success: true,
@@ -913,6 +929,21 @@ app.post('/api/makypay/test-subscription', authenticateRequest, async (req, res)
     }
 
     console.log('✅ Test subscription created:', subscriptionData);
+
+    // 3. CRITICAL: Update profiles table (this is what the app reads!)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        subscription: subscriptionPlan,
+        subscription_expiry_date: expiresAt.toISOString()
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error('❌ Test profile update error:', profileError);
+    } else {
+      console.log('✅ Test profile subscription updated for user:', userId);
+    }
 
     res.json({
       success: true,

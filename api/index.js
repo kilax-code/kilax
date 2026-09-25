@@ -148,27 +148,30 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
 
     let paymentData, endpoint, requestBody, paymentMethodType;
 
+    // MakyPay uses the same endpoint for both mobile money and card payments
+    endpoint = `${MAKYPAY_API_BASE}/collections/collect-money`;
+
     if (paymentMethod === 'card') {
-      // Card payment
-      endpoint = `${MAKYPAY_API_BASE}/collections/card`;
-      requestBody = {
+      // Card payment - as per MakyPay docs
+      requestBody = new URLSearchParams({
+        method: 'card',
         amount: amount.toString(),
-        currency: 'UGX',
+        country: 'UG',
+        reference: reference || `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         description: description || 'Kilax Subscription Payment',
-        return_url: process.env.MAKYPAY_RETURN_URL || 'https://kilaxmovies.com/payment/success',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
-      };
+      }).toString();
       paymentMethodType = 'makypay_card';
     } else {
-      // Mobile money payment
-      endpoint = `${MAKYPAY_API_BASE}/collections/mobile-money`;
-      requestBody = {
+      // Mobile money payment - as per MakyPay docs
+      requestBody = new URLSearchParams({
         phone_number: phoneNumber,
-        amount: amount,
-        currency: 'UGX',
+        amount: amount.toString(),
+        country: 'UG',
+        reference: reference || `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         description: description || 'Kilax Subscription Payment',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
-      };
+      }).toString();
       paymentMethodType = 'makypay_mobile_money';
     }
 
@@ -182,7 +185,7 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
     const response = await axios.post(endpoint, requestBody, {
       headers: {
         'Authorization': `Basic ${MAKYPAY_AUTH}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
       },
       timeout: 30000
@@ -197,9 +200,9 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
       user_id: userId,
       uuid: transaction.uuid || transaction.transaction_id,
       reference: transaction.reference || transaction.uuid,
-      amount: amount,
-      currency: 'UGX',
-      phone_number: paymentMethod === 'mobile_money' ? phoneNumber : null,
+      amount: collection.amount?.raw || amount,
+      currency: collection.amount?.currency || 'UGX',
+      phone_number: paymentMethod === 'mobile_money' ? (collection.phone_number || phoneNumber) : null,
       payment_method: paymentMethodType,
       status: transaction.status || 'processing',
       description: description,
@@ -217,7 +220,7 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
       phoneNumber: collection.phone_number || phoneNumber,
       provider: collection.provider || (paymentMethod === 'card' ? 'card' : 'mtn'),
       redirectUrl: paymentData.redirect_url || '',
-      message: transaction.message || 'Payment initiated successfully',
+      message: response.data?.message || 'Payment initiated successfully',
       description: description
     });
 

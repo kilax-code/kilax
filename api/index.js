@@ -664,10 +664,10 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
     const durationDays = subscriptionDuration || 30;
     const expiresAt = new Date(now.getTime() + (durationDays * 24 * 60 * 60 * 1000));
 
-    // Update user subscription
-    const { error: updateError } = await supabase
+    // Insert new subscription record (each payment creates a new record)
+    const { data: subscriptionData, error: insertError } = await supabase
       .from('subscriptions')
-      .upsert({
+      .insert({
         user_id: userId,
         plan: subscriptionPlan,
         payment_method: transaction.payment_method || 'makypay_mobile_money',
@@ -676,18 +676,21 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
         expires_at: expiresAt.toISOString(),
         status: 'active',
         updated_at: now.toISOString()
-      }, {
-        onConflict: 'user_id'
-      });
+      })
+      .select();
 
-    if (updateError) {
-      throw updateError;
+    if (insertError) {
+      console.error('Subscription insert error:', insertError);
+      throw insertError;
     }
+
+    console.log('Subscription created:', subscriptionData);
 
     res.json({
       success: true,
       message: 'Subscription activated successfully',
-      expiresAt: expiresAt.toISOString()
+      expiresAt: expiresAt.toISOString(),
+      subscription: subscriptionData
     });
 
   } catch (error) {
@@ -746,10 +749,10 @@ app.post('/api/makypay/complete-subscription', authenticateRequest, async (req, 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + (subscriptionDuration * 24 * 60 * 60 * 1000));
 
-    // Update user subscription
-    const { error: updateError } = await supabase
+    // Insert new subscription record (each payment creates a new record)
+    const { error: insertError } = await supabase
       .from('user_subscriptions')
-      .upsert({
+      .insert({
         user_id: userId,
         subscription_type: subscriptionPlan,
         payment_method: paymentMethod,
@@ -760,8 +763,8 @@ app.post('/api/makypay/complete-subscription', authenticateRequest, async (req, 
         updated_at: now.toISOString()
       });
 
-    if (updateError) {
-      throw updateError;
+    if (insertError) {
+      throw insertError;
     }
 
     res.json({

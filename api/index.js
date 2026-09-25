@@ -430,85 +430,86 @@ app.get('/api/makypay/status', authenticateRequest, async (req, res) => {
 
     console.log('Checking transaction status:', transactionId);
 
-    // Check MakyPay API for status
-    const response = await axios.get(
-      `${MAKYPAY_API_BASE}/transactions/${transactionId}`,
-      {
-        headers: {
-          'Authorization': `Basic ${MAKYPAY_AUTH}`,
-          'Accept': 'application/json'
-        },
-        timeout: 15000
-      }
-    );
-
-    console.log('MakyPay status response:', response.data);
-
-    const responseData = response.data?.data || response.data;
-    const transaction = responseData.transaction || responseData;
-
-    // Update local database
-    await supabase
+    // First check our local database
+    const { data: localTransaction, error: dbError } = await supabase
       .from('makypay_transactions')
-      .update({
-        status: transaction.status,
-        provider_reference: transaction.provider_reference,
-        provider_response: responseData,
-        updated_at: new Date().toISOString()
-      })
-      .eq('uuid', transactionId);
+      .select('*')
+      .eq('uuid', transactionId)
+      .single();
 
-    res.json({
-      success: true,
-      uuid: transaction.uuid || transactionId,
-      reference: transaction.reference,
-      status: transaction.status,
-      amount: transaction.amount?.raw || transaction.amount || 0,
-      currency: transaction.amount?.currency || transaction.currency || 'UGX',
-      provider: transaction.provider || 'unknown',
-      providerReference: transaction.provider_reference
-    });
+    if (!localTransaction) {
+      console.log('Transaction not found in database');
+      return res.status(404).json({
+        error: 'Transaction not found',
+        message: 'Transaction not found in database'
+      });
+    }
+
+    console.log('Local transaction status:', localTransaction.status);
+
+    // Try to get latest status from MakyPay
+    try {
+      const response = await axios.get(
+        `${MAKYPAY_API_BASE}/transactions/${transactionId}`,
+        {
+          headers: {
+            'Authorization': `Basic ${MAKYPAY_AUTH}`,
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+
+      console.log('MakyPay status response:', response.data);
+
+      const responseData = response.data?.data || response.data;
+      const transaction = responseData.transaction || responseData;
+
+      // Update local database with latest status
+      await supabase
+        .from('makypay_transactions')
+        .update({
+          status: transaction.status,
+          provider_reference: transaction.provider_reference,
+          provider_response: responseData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('uuid', transactionId);
+
+      return res.json({
+        success: true,
+        uuid: transaction.uuid || transactionId,
+        reference: transaction.reference,
+        status: transaction.status,
+        amount: transaction.amount?.raw || transaction.amount || localTransaction.amount,
+        currency: transaction.amount?.currency || transaction.currency || 'UGX',
+        provider: transaction.provider || localTransaction.provider || 'unknown',
+        providerReference: transaction.provider_reference,
+        source: 'makypay'
+      });
+    } catch (makyPayError) {
+      console.log('MakyPay API error, using database status:', makyPayError.response?.status);
+      
+      // MakyPay failed, return database status (this is normal during processing)
+      return res.json({
+        success: true,
+        uuid: localTransaction.uuid,
+        reference: localTransaction.reference,
+        status: localTransaction.status || 'processing',
+        amount: localTransaction.amount,
+        currency: localTransaction.currency || 'UGX',
+        provider: localTransaction.provider || 'unknown',
+        providerReference: localTransaction.provider_reference,
+        source: 'database'
+      });
+    }
 
   } catch (error) {
-    console.error('Status check error:', {
-      status: error.response?.status,
-      data: error.response?.data,
+    console.error('Status check error:', error.message);
+    
+    res.status(500).json({
+      error: 'Status check failed',
       message: error.message
-    });
-    
-    // If MakyPay API returns 404, the transaction might still be processing
-    // Check our local database for the transaction
-    if (error.response?.status === 404) {
-      try {
-        const { data: localTransaction } = await supabase
-          .from('makypay_transactions')
-          .select('*')
-          .eq('uuid', transactionId)
-          .single();
-
-        if (localTransaction) {
-          console.log('Transaction found in local database:', localTransaction.status);
-          return res.json({
-            success: true,
-            uuid: localTransaction.uuid,
-            reference: localTransaction.reference,
-            status: localTransaction.status || 'processing',
-            amount: localTransaction.amount,
-            currency: localTransaction.currency || 'UGX',
-            provider: localTransaction.provider || 'unknown',
-            providerReference: localTransaction.provider_reference,
-            source: 'database'
-          });
-        }
-      } catch (dbError) {
-        console.error('Database lookup error:', dbError);
-      }
-    }
-    
-    res.status(error.response?.status || 500).json({
-      error: error.response?.data?.message || error.response?.data?.error || 'Status check failed',
-      message: error.response?.data?.message || error.message,
-      details: error.response?.data
     });
   }
 });

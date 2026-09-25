@@ -38,7 +38,7 @@ const supabase = createClient(
 );
 
 // MakyPay API Configuration
-const MAKYPAY_API_BASE = 'https://api.makypay.com/v1';
+const MAKYPAY_API_BASE = 'https://wire-api.makylegacy.com/api/v1';
 const MAKYPAY_AUTH = Buffer.from(
   `${process.env.MAKYPAY_API_KEY}:${process.env.MAKYPAY_API_SECRET}`
 ).toString('base64');
@@ -109,7 +109,124 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
- * POST /api/makypay/collect
+ * POST /api/makypay/initiate
+ * Initiate mobile money or card payment collection
+ */
+app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
+  try {
+    const { phoneNumber, amount, description, userId, paymentMethod = 'mobile_money' } = req.body;
+
+    // Validate inputs
+    if (!amount || !userId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'amount and userId are required'
+      });
+    }
+
+    if (paymentMethod === 'mobile_money' && !phoneNumber) {
+      return res.status(400).json({
+        error: 'Missing phone number',
+        message: 'phoneNumber is required for mobile money payments'
+      });
+    }
+
+    if (amount < 500 || amount > 10000000) {
+      return res.status(400).json({
+        error: 'Invalid amount',
+        message: 'Amount must be between 500 and 10,000,000 UGX'
+      });
+    }
+
+    // Verify userId matches authenticated user
+    if (userId !== req.user.id) {
+      return res.status(403).json({
+        error: 'User ID mismatch',
+        message: 'Cannot initiate payment for another user'
+      });
+    }
+
+    let paymentData, endpoint, requestBody, paymentMethodType;
+
+    if (paymentMethod === 'card') {
+      // Card payment
+      endpoint = `${MAKYPAY_API_BASE}/collections/collect-money`;
+      requestBody = new URLSearchParams({
+        method: 'card',
+        amount: amount.toString(),
+        country: 'UG',
+        description: description || 'Kilax Subscription Payment',
+        callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
+      }).toString();
+      paymentMethodType = 'makypay_card';
+    } else {
+      // Mobile money payment
+      endpoint = `${MAKYPAY_API_BASE}/collections/collect-money`;
+      requestBody = new URLSearchParams({
+        phone_number: phoneNumber,
+        amount: amount.toString(),
+        country: 'UG',
+        description: description || 'Kilax Subscription Payment',
+        callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
+      }).toString();
+      paymentMethodType = 'makypay_mobile_money';
+    }
+
+    // Call MakyPay API
+    const response = await axios.post(endpoint, requestBody, {
+      headers: {
+        'Authorization': `Basic ${MAKYPAY_AUTH}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      timeout: 30000
+    });
+
+    paymentData = response.data?.data || response.data;
+    const transaction = paymentData.transaction || {};
+    const collection = paymentData.collection || {};
+
+    // Log transaction to database
+    await supabase.from('makypay_transactions').insert({
+      user_id: userId,
+      uuid: transaction.uuid || transaction.transaction_id,
+      reference: transaction.reference || transaction.uuid,
+      amount: amount,
+      currency: 'UGX',
+      phone_number: paymentMethod === 'mobile_money' ? phoneNumber : null,
+      payment_method: paymentMethodType,
+      status: transaction.status || 'processing',
+      description: description,
+      provider: collection.provider || (paymentMethod === 'card' ? 'card' : 'mtn'),
+      provider_response: paymentData
+    });
+
+    res.json({
+      success: true,
+      uuid: transaction.uuid || transaction.transaction_id,
+      reference: transaction.reference || transaction.uuid,
+      status: transaction.status || 'processing',
+      amount: collection.amount?.raw || amount,
+      currency: collection.amount?.currency || 'UGX',
+      phoneNumber: collection.phone_number || phoneNumber,
+      provider: collection.provider || (paymentMethod === 'card' ? 'card' : 'mtn'),
+      redirectUrl: paymentData.redirect_url || '',
+      message: transaction.message || 'Payment initiated successfully',
+      description: description
+    });
+
+  } catch (error) {
+    console.error('Payment initiation error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data?.message || error.response?.data?.error || 'Payment initiation failed',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
+ * POST /api/makypay/collect (deprecated - use /initiate)
  * Initiate mobile money payment collection
  */
 app.post('/api/makypay/collect', authenticateRequest, async (req, res) => {
@@ -277,8 +394,70 @@ app.post('/api/makypay/card/collect', authenticateRequest, async (req, res) => {
 });
 
 /**
+ * GET /api/makypay/status
+ * Check transaction status (query parameter version)
+ */
+app.get('/api/makypay/status', authenticateRequest, async (req, res) => {
+  try {
+    const transactionId = req.query.transactionId;
+
+    if (!transactionId) {
+      return res.status(400).json({
+        error: 'Missing transaction ID',
+        message: 'transactionId query parameter is required'
+      });
+    }
+
+    // Check MakyPay API for status
+    const response = await axios.get(
+      `${MAKYPAY_API_BASE}/transactions/${transactionId}`,
+      {
+        headers: {
+          'Authorization': `Basic ${MAKYPAY_AUTH}`,
+          'Accept': 'application/json'
+        },
+        timeout: 15000
+      }
+    );
+
+    const responseData = response.data?.data || response.data;
+    const transaction = responseData.transaction || responseData;
+
+    // Update local database
+    await supabase
+      .from('makypay_transactions')
+      .update({
+        status: transaction.status,
+        provider_reference: transaction.provider_reference,
+        provider_response: responseData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('uuid', transactionId);
+
+    res.json({
+      success: true,
+      uuid: transaction.uuid || transactionId,
+      reference: transaction.reference,
+      status: transaction.status,
+      amount: transaction.amount?.raw || transaction.amount || 0,
+      currency: transaction.amount?.currency || transaction.currency || 'UGX',
+      provider: transaction.provider || 'unknown',
+      providerReference: transaction.provider_reference
+    });
+
+  } catch (error) {
+    console.error('Status check error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      error: error.response?.data?.message || error.response?.data?.error || 'Status check failed',
+      message: error.response?.data?.message || error.message
+    });
+  }
+});
+
+/**
  * GET /api/makypay/status/:uuid
- * Check transaction status
+ * Check transaction status (path parameter version)
  */
 app.get('/api/makypay/status/:uuid', authenticateRequest, async (req, res) => {
   try {
@@ -335,7 +514,90 @@ app.get('/api/makypay/status/:uuid', authenticateRequest, async (req, res) => {
 });
 
 /**
- * POST /api/makypay/complete-subscription
+ * POST /api/makypay/complete
+ * Complete subscription after successful payment
+ */
+app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
+  try {
+    const { userId, transactionId, subscriptionPlan, subscriptionDuration } = req.body;
+
+    if (!userId || !transactionId || !subscriptionPlan) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'userId, transactionId, and subscriptionPlan are required'
+      });
+    }
+
+    if (userId !== req.user.id) {
+      return res.status(403).json({
+        error: 'User ID mismatch'
+      });
+    }
+
+    // Verify transaction is completed
+    const { data: transaction } = await supabase
+      .from('makypay_transactions')
+      .select('*')
+      .eq('uuid', transactionId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!transaction) {
+      return res.status(404).json({
+        error: 'Transaction not found'
+      });
+    }
+
+    if (transaction.status !== 'completed' && transaction.status !== 'succeeded' && transaction.status !== 'sandbox') {
+      return res.status(400).json({
+        error: 'Transaction not completed',
+        message: `Payment status is ${transaction.status}. It must be completed before activating subscription.`
+      });
+    }
+
+    // Calculate expiry
+    const now = new Date();
+    const durationDays = subscriptionDuration || 30;
+    const expiresAt = new Date(now.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+
+    // Update user subscription
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .upsert({
+        user_id: userId,
+        plan: subscriptionPlan,
+        payment_method: transaction.payment_method || 'makypay_mobile_money',
+        transaction_uuid: transactionId,
+        started_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        status: 'active',
+        updated_at: now.toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    res.json({
+      success: true,
+      message: 'Subscription activated successfully',
+      expiresAt: expiresAt.toISOString()
+    });
+
+  } catch (error) {
+    console.error('Subscription completion error:', error);
+    
+    res.status(500).json({
+      error: 'Subscription activation failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/makypay/complete-subscription (deprecated - use /complete)
  * Complete subscription after successful payment
  */
 app.post('/api/makypay/complete-subscription', authenticateRequest, async (req, res) => {

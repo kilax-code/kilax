@@ -146,6 +146,9 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
       });
     }
 
+    // Generate a unique reference for this transaction
+    const transactionReference = `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     let paymentData, endpoint, requestBody, paymentMethodType;
 
     // MakyPay uses the same endpoint for both mobile money and card payments
@@ -157,7 +160,7 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
         method: 'card',
         amount: amount.toString(),
         country: 'UG',
-        reference: reference || `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        reference: transactionReference,
         description: description || 'Kilax Subscription Payment',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
       }).toString();
@@ -168,7 +171,7 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
         phone_number: phoneNumber,
         amount: amount.toString(),
         country: 'UG',
-        reference: reference || `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        reference: transactionReference,
         description: description || 'Kilax Subscription Payment',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
       }).toString();

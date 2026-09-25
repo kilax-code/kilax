@@ -681,10 +681,10 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
     const durationDays = subscriptionDuration || 30;
     const expiresAt = new Date(now.getTime() + (durationDays * 24 * 60 * 60 * 1000));
 
-    // Insert new subscription record (each payment creates a new record)
+    // Upsert subscription record (update if exists, insert if new)
     const { data: subscriptionData, error: insertError } = await supabase
       .from('subscriptions')
-      .insert({
+      .upsert({
         user_id: userId,
         plan: subscriptionPlan,
         payment_method: transaction.payment_method || 'makypay_mobile_money',
@@ -695,6 +695,8 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
         expires_at: expiresAt.toISOString(),
         status: 'active',
         updated_at: now.toISOString()
+      }, {
+        onConflict: 'user_id'
       })
       .select();
 

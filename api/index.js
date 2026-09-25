@@ -200,19 +200,29 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
     const collection = paymentData.collection || {};
 
     // Log transaction to database
-    await supabase.from('makypay_transactions').insert({
-      user_id: userId,
-      uuid: transaction.uuid || transaction.transaction_id,
-      reference: transaction.reference || transaction.uuid,
-      amount: collection.amount?.raw || amount,
-      currency: collection.amount?.currency || 'UGX',
-      phone_number: paymentMethod === 'mobile_money' ? (collection.phone_number || phoneNumber) : null,
-      payment_method: paymentMethodType,
-      status: transaction.status || 'processing',
-      description: description,
-      provider: collection.provider || (paymentMethod === 'card' ? 'card' : 'mtn'),
-      provider_response: paymentData
-    });
+    const { data: insertedTransaction, error: insertError } = await supabase
+      .from('makypay_transactions')
+      .insert({
+        user_id: userId,
+        uuid: transaction.uuid || transaction.transaction_id,
+        reference: transaction.reference || transaction.uuid,
+        amount: collection.amount?.raw || amount,
+        currency: collection.amount?.currency || 'UGX',
+        phone_number: paymentMethod === 'mobile_money' ? (collection.phone_number || phoneNumber) : null,
+        payment_method: paymentMethodType,
+        status: transaction.status || 'processing',
+        description: description,
+        provider: collection.provider || (paymentMethod === 'card' ? 'card' : 'mtn'),
+        response_data: paymentData
+      })
+      .select();
+
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      // Continue anyway - transaction is initiated with MakyPay
+    } else {
+      console.log('Transaction saved to database:', insertedTransaction);
+    }
 
     res.json({
       success: true,

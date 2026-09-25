@@ -689,7 +689,12 @@ app.post('/api/makypay/complete', authenticateRequest, async (req, res) => {
         plan: subscriptionPlan,
         payment_method: transaction.payment_method || 'makypay_mobile_money',
         subscribed_at: now.toISOString(),
-        end_date: expiresAt.toISOString()
+        end_date: expiresAt.toISOString(),
+        transaction_uuid: transactionId,
+        started_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        status: 'active',
+        updated_at: now.toISOString()
       })
       .select();
 

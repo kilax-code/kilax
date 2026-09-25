@@ -150,33 +150,39 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
 
     if (paymentMethod === 'card') {
       // Card payment
-      endpoint = `${MAKYPAY_API_BASE}/collections/collect-money`;
-      requestBody = new URLSearchParams({
-        method: 'card',
+      endpoint = `${MAKYPAY_API_BASE}/collections/card`;
+      requestBody = {
         amount: amount.toString(),
-        country: 'UG',
+        currency: 'UGX',
         description: description || 'Kilax Subscription Payment',
+        return_url: process.env.MAKYPAY_RETURN_URL || 'https://kilaxmovies.com/payment/success',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
-      }).toString();
+      };
       paymentMethodType = 'makypay_card';
     } else {
       // Mobile money payment
-      endpoint = `${MAKYPAY_API_BASE}/collections/collect-money`;
-      requestBody = new URLSearchParams({
+      endpoint = `${MAKYPAY_API_BASE}/collections/mobile-money`;
+      requestBody = {
         phone_number: phoneNumber,
-        amount: amount.toString(),
-        country: 'UG',
+        amount: amount,
+        currency: 'UGX',
         description: description || 'Kilax Subscription Payment',
         callback_url: process.env.MAKYPAY_CALLBACK_URL || `${process.env.VERCEL_URL}/api/makypay/callback`
-      }).toString();
+      };
       paymentMethodType = 'makypay_mobile_money';
     }
 
-    // Call MakyPay API
+    // Call MakyPay API with logging
+    console.log('MakyPay Request:', {
+      endpoint,
+      body: requestBody,
+      paymentMethod
+    });
+
     const response = await axios.post(endpoint, requestBody, {
       headers: {
         'Authorization': `Basic ${MAKYPAY_AUTH}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
       timeout: 30000
@@ -217,10 +223,17 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
 
   } catch (error) {
     console.error('Payment initiation error:', error.response?.data || error.message);
+    console.error('Full error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
     
     res.status(error.response?.status || 500).json({
       error: error.response?.data?.message || error.response?.data?.error || 'Payment initiation failed',
-      message: error.response?.data?.message || error.message
+      message: error.response?.data?.message || error.message,
+      details: error.response?.data
     });
   }
 });

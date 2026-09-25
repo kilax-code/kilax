@@ -12,6 +12,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -146,8 +147,8 @@ app.post('/api/makypay/initiate', authenticateRequest, async (req, res) => {
       });
     }
 
-    // Generate a unique reference for this transaction
-    const transactionReference = `kilax-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate a unique UUID v4 reference for this transaction (required by MakyPay)
+    const transactionReference = uuidv4();
 
     let paymentData, endpoint, requestBody, paymentMethodType;
 
